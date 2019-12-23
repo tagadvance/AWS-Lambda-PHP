@@ -40,25 +40,24 @@ make install
 # Confirm OpenSSL was installed and ensure version matches exactly!
 ~/openssl-bin/bin/openssl version
 
-## SKIP THIS and --with-zip as it doesn't work =(
-#cd ~
-#
-## libzip; Requested 'libzip >= 0.11' but version of libzip is 0.10.1
-## cmake; CMake 3.0.2 or higher is required.  You are running version 2.8.12.2
-#curl -sL https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2.tar.gz | tar -xvz
-#cd cmake-*
-#./bootstrap
-#make
-#sudo make install
-#cd ~
-#curl -sL https://libzip.org/download/libzip-1.5.2.tar.gz | tar -xvz
-#cd libzip-*
-#mkdir build
-#cd build
-#~/cmake-*/bin/cmake ..
-#make
-#make test
-#make install
+cd ~
+
+# libzip; Requested 'libzip >= 0.11' but version of libzip is 0.10.1
+# cmake; CMake 3.0.2 or higher is required.  You are running version 2.8.12.2
+curl -sL https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2.tar.gz | tar -xvz
+cd cmake-*
+./bootstrap
+make
+sudo make install
+cd ~
+curl -sL https://libzip.org/download/libzip-1.5.2.tar.gz | tar -xvz
+cd libzip-*
+mkdir build
+cd build
+~/cmake-*/bin/cmake ..
+make
+make test
+make install
 
 cd ~
 
@@ -95,7 +94,7 @@ export PKG_CONFIG_PATH=$HOME/openssl-bin/lib/pkgconfig
   --with-pgsql \
   --with-xsl \
   --with-xmlrpc \
-#  --with-zip \
+  --with-zip \
   --with-zlib
 make install
 
