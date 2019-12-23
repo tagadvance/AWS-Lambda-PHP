@@ -14,8 +14,8 @@ avoids running out of memory. You may have to add swap to instances with <= 1GB 
 sudo yum update -y
 sudo yum install autoconf gcc gcc-c++ -y
 sudo yum install bzip2-devel freetype-devel gmp-devel \
-  libzip-devel libcurl-devel libicu-devel libjpeg-devel \
-  libpng-devel libwebp-devel libxml2-devel libxslt-devel \
+  libcurl-devel libicu-devel libjpeg-devel libpng-devel \
+  libwebp-devel libxml2-devel libxslt-devel \
   re2c sqlite-devel -y
 ```
 
@@ -51,6 +51,8 @@ make
 make install
 # Confirm OpenSSL was installed and ensure version matches exactly!
 ~/openssl-bin/bin/openssl version
+
+echo 'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/openssl-bin/lib/pkgconfig' >> ~/.bash_profile; source ~/.bash_profile
 ```
 
 `cd ~`
@@ -67,15 +69,21 @@ cd cmake-*
 ./bootstrap
 make
 sudo make install
-cd ~
+```
+
+`cd ~`
+
+```bash
 curl -sL https://libzip.org/download/libzip-1.5.2.tar.gz | tar -xvz
 cd libzip-*
 mkdir build
 cd build
-~/cmake-*/bin/cmake ..
+cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$HOME/ziplib-bin
 make
 make test
 make install
+
+echo 'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/ziplib-bin/lib64/pkgconfig' >> ~/.bash_profile; source ~/.bash_profile
 ```
 
 `cd ~`
@@ -87,7 +95,6 @@ Find the latest stable version of PHP @ [PHP Releases](https://github.com/php/ph
 ```bash
 curl -sL https://github.com/php/php-src/archive/php-7.4.1.tar.gz | tar -xvz
 cd php-src-php-7*
-export PKG_CONFIG_PATH=$HOME/openssl-bin/lib/pkgconfig
 ./buildconf --force
 ./configure \
   --prefix=$HOME/php-74-bin/ \
@@ -98,6 +105,7 @@ export PKG_CONFIG_PATH=$HOME/openssl-bin/lib/pkgconfig
   --enable-fpm \
   --enable-ftp \
   --enable-gd \
+  --enable-zip \
   --with-jpeg \
   --with-webp \
   --with-freetype \
