@@ -13,8 +13,8 @@ avoids running out of memory. You may have to add swap to instances with <= 1GB 
 ```bash
 sudo yum update -y
 sudo yum install autoconf gcc gcc-c++ -y
-sudo yum install bzip2-devel gmp-devel libcurl-devel libicu-devel libxml2-devel libxslt-devel \
-  re2c sqlite-devel -y
+sudo yum install bzip2-devel gmp-devel ImageMagick-devel libcurl-devel libicu-devel libxml2-devel libxslt-devel \
+  php-pear re2c sqlite-devel -y
 ```
 
 ###### Download, Compile, and install Bison
@@ -93,6 +93,15 @@ Find the latest stable version of PHP @ [PHP Releases](https://github.com/php/ph
 ```bash
 curl -sL https://github.com/php/php-src/archive/php-7.4.1.tar.gz | tar -xvz
 cd php-src-php-7*
+
+# Build PECL extension ImageMagick statically
+cd ext
+pecl download imagick
+gzip -d < imagick-*.tgz | tar -xvf -
+rm imagick-*.tgz
+mv imagick-* imagick
+cd ..
+
 ./buildconf --force
 ./configure \
   --prefix=$HOME/php-74-bin/ \
@@ -111,6 +120,7 @@ cd php-src-php-7*
   --with-curl \
   --with-gettext \
   --with-gmp \
+  --with-imagick \
   --with-mysqli \
   --with-openssl \
   --with-pdo-mysql \
