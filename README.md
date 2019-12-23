@@ -13,9 +13,7 @@ avoids running out of memory. You may have to add swap to instances with <= 1GB 
 ```bash
 sudo yum update -y
 sudo yum install autoconf gcc gcc-c++ -y
-sudo yum install bzip2-devel freetype-devel gmp-devel \
-  libcurl-devel libicu-devel libjpeg-devel libpng-devel \
-  libwebp-devel libxml2-devel libxslt-devel \
+sudo yum install bzip2-devel gmp-devel libcurl-devel libicu-devel libxml2-devel libxslt-devel \
   re2c sqlite-devel -y
 ```
 
@@ -104,11 +102,6 @@ cd php-src-php-7*
   --enable-calendar \
   --enable-fpm \
   --enable-ftp \
-  --enable-gd \
-  --enable-zip \
-  --with-jpeg \
-  --with-webp \
-  --with-freetype \
   --enable-intl \
   --enable-mbstring \
   --disable-mbregex \
@@ -123,6 +116,7 @@ cd php-src-php-7*
   --with-pdo-mysql \
   --with-xsl \
   --with-xmlrpc \
+  --with-zip \
   --with-zlib
 make install
 
