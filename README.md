@@ -6,8 +6,8 @@ A guide to downloading and compiling PHP 7.4 for use in AWS Lambda.
 
 @see [AWS Lambda Custom Runtime for PHP: A Practical Example](https://aws.amazon.com/blogs/apn/aws-lambda-custom-runtime-for-php-a-practical-example/)
 
-** I recommend using at least a `t3.small` or `t3a.small` EC2 instance as I ran into memory issues with 1GB ram. Adding
-swap solved the problem but it's easier not have to worry about it.
+*I recommend using at least a `t3.small` or `t3a.small` EC2 instance type. Compilation time is greatly reduced and
+avoids running out of memory. You may have to add swap to instances with <= 1GB RAM.*
 
 ###### Update and Install Dependencies
 ```bash
