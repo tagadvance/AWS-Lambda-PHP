@@ -37,6 +37,8 @@ bison --version
 
 `cd ~`
 
+###### Download, Compile, and install OpenSSL
+
 Use the 'about' lambda function to get the current version used by AWS Lambda. As of 2019-12-22 it is `OpenSSL 1.0.2k-fips  26 Jan 2017`.
 
 Use [OpenSSL Old Releases](https://www.openssl.org/source/old/) to find the correct release.
@@ -52,6 +54,8 @@ make install
 ```
 
 `cd ~`
+
+###### Download, Compile, and install libzip
 
 Compile a compatible version of libzip which in turn requires a recent version of cmake.
 `Requested 'libzip >= 0.11' but version of libzip is 0.10.1`
@@ -75,6 +79,8 @@ make install
 ```
 
 `cd ~`
+
+##### PHP 7.4
 
 Find the latest stable version of PHP @ [PHP Releases](https://github.com/php/php-src/releases).
 
