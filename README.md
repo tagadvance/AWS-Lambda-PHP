@@ -62,8 +62,11 @@ Compile a compatible version of libzip which in turn requires a recent version o
 `CMake 3.0.2 or higher is required.  You are running version 2.8.12.2`
 
 ```bash
-yum remove -y cmake; yum install -y cmake3
-ln -s /usr/bin/cmake3 /usr/bin/cmake
+curl -sL https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2.tar.gz | tar -xvz
+cd cmake-*
+./bootstrap
+make
+sudo make install
 ```
 
 `cd ~`
@@ -101,7 +104,7 @@ cd ..
 
 ./buildconf --force
 ./configure \
-  --prefix=$HOME/php74-bin/ \
+  --prefix=$HOME/php-74-bin/ \
   --with-openssl \
   --with-openssl-dir=$HOME/openssl-bin \
   --enable-bcmath \
