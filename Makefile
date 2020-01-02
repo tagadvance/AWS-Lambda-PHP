@@ -15,6 +15,6 @@ build:
 package:
 	docker run --name aws-lambda-php --volume `pwd`/build:/root/build --rm tagadvance/aws-lambda-php:1.0
 
-debug:
+debug: clean build
 	docker run --name aws-lambda-php --interactive --tty --volume `pwd`/build:/root/build --entrypoint=/bin/bash tagadvance/aws-lambda-php:1.0
 
