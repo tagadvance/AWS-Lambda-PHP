@@ -1,6 +1,7 @@
 #!/bin/bash
 
 [ -d "/usr/local/ssl" ] && export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/ssl/lib/pkgconfig
+[ -d "$WORKSPACE/ziplib-bin" ] && export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$WORKSPACE/ziplib-bin/lib64/pkgconfig
 
 curl --silent --location https://github.com/php/php-src/archive/php-7.4.1.tar.gz | tar --extract --gzip --verbose
 cd php-src-php-7*
@@ -16,6 +17,7 @@ if [ ! -f "ext/imagick" ]; then
 fi
 
 ./buildconf --force
+sed -i 's/export PKG_CONFIG_PATH="/export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/g' configure
 ./configure \
   --prefix=$WORKSPACE/php74-bin/ \
   --with-openssl \
@@ -38,5 +40,6 @@ fi
   --with-pdo-mysql \
   --with-xsl \
   --with-xmlrpc \
+  --with-zip \
   --with-zlib
 make install

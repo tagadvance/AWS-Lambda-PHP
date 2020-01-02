@@ -13,7 +13,13 @@ bison: build-essential
 openssl: build-essential
 	./build-scripts/openssl.bash
 
-php74: bison openssl install-dependencies
+libzip: build-essential
+	yum remove --assumeyes cmake
+	yum install --assumeyes cmake3
+	ln -s /usr/bin/cmake3 /usr/bin/cmake
+	./build-scripts/libzip.bash
+
+php74: bison openssl libzip install-dependencies
 	./build-scripts/php74.bash
 
 package-php74: php74
