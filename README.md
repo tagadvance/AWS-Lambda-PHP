@@ -1,4 +1,4 @@
-# AWS-Lambda-PHP
+# PHP 7.4 AWS Lambda Layer
 
 To build PHP 7.4 for use as a layer in AWS Lambda:
 
