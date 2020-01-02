@@ -23,6 +23,7 @@ sed -i 's/export PKG_CONFIG_PATH="/export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/g' 
   --with-openssl \
   --enable-bcmath \
   --enable-calendar \
+  --enable-exif \
   --enable-fpm \
   --enable-ftp \
   --enable-intl \
@@ -30,6 +31,9 @@ sed -i 's/export PKG_CONFIG_PATH="/export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/g' 
   --disable-mbregex \
   --enable-soap \
   --enable-sockets \
+  --enable-sysvsem \
+  --enable-sysvshm \
+  --enable-sysvmsg \
   --with-bz2 \
   --with-curl \
   --with-gettext \
@@ -43,3 +47,5 @@ sed -i 's/export PKG_CONFIG_PATH="/export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/g' 
   --with-zip \
   --with-zlib
 make install
+
+# xml $xml reader and #writer
