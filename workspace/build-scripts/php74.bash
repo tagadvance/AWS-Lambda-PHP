@@ -2,16 +2,18 @@
 
 [ -d "/usr/local/ssl" ] && export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/ssl/lib/pkgconfig
 
-curl --silent --location https://github.com/php/php-src/archive/php-7.4.1.tar.gz | tar -xvz
+curl --silent --location https://github.com/php/php-src/archive/php-7.4.1.tar.gz | tar --extract --gzip --verbose
 cd php-src-php-7*
 
 # Build PECL extension ImageMagick statically
-cd ext
-pecl download imagick
-gzip --decompress < imagick-*.tgz | tar -xvf -
-rm imagick-*.tgz
-mv imagick-* imagick
-cd ..
+if [ ! -f "ext/imagick" ]; then
+  cd ext
+  pecl download imagick
+  gzip --decompress < imagick-*.tgz | tar -xvf -
+  rm imagick-*.tgz
+  mv imagick-* imagick
+  cd ..
+fi
 
 ./buildconf --force
 ./configure \
