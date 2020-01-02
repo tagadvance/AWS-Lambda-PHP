@@ -1,4 +1,4 @@
-#!/opt/bin/php
+#!/opt/bin/php -c/opt/bin/php.ini
 <?php
 
 do {
