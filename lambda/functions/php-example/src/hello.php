@@ -1,5 +1,3 @@
 <?php
 
-function hello($data): string {
-    return "Hello, {$data['name']}!";
-}
+return "Hello, {$request['payload']['name']}!";

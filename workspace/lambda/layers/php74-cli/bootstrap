@@ -1,72 +1,108 @@
 #!/opt/bin/php -c/opt/bin/php.ini
 <?php
 
-do {
-    $request = getNextRequest();
+foreach (request_generator() as $request) {
+	$tokens = explode($delimiter = '.', getenv('_HANDLER'));
+	$handlerFunction = array_slice($tokens, $offset = -1)[0];
+	$handler = sprintf('%s/src/%s.php', getenv('LAMBDA_TASK_ROOT'), $handlerFunction);
 
-    $tokens = explode($delimiter = '.', $_ENV['_HANDLER']);
-    $handlerFunction = array_slice($tokens, $offset = -1)[0];
-    $handler = sprintf('%s/src/%s.php', $_ENV['LAMBDA_TASK_ROOT'], $handlerFunction);
-    require_once $handler;
+	try {
+		// TODO: refactor to run in another process
+		$data = $request['payload'];
+		$response = require $handler;
 
-    $response = $handlerFunction($request['payload']);
-
-    sendResponse($request['invocationId'], $response);
-} while (true);
-
-function getNextRequest(): array
-{
-    $url = sprintf('http://%s/2018-06-01/runtime/invocation/next', $_ENV['AWS_LAMBDA_RUNTIME_API']);
-    $headers = [];
-
-    $curl = curl_init();
-    try {
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADERFUNCTION => function ($curl, $header) use (&$headers) {
-                $length = strlen($header);
-                $header = explode($delimiter = ':', $header, $limit = 2);
-                if (count($header) < 2) // ignore invalid headers
-                    return $length;
-
-                [$key, $value] = array_map('trim', $header);
-
-                $headers[$key][] = $value;
-
-                return $length;
-            }
-        ]);
-
-        $body = curl_exec($curl);
-
-        return [
-            'invocationId' => $headers['Lambda-Runtime-Aws-Request-Id'][0],
-            'payload' => json_decode($body, $associative = true)
-        ];
-    } finally {
-        curl_close($curl);
-    }
+		send_response($request['invocationId'], $response);
+	} catch (\Throwable $t) {
+		send_response($request['invocationId'], $t->getMessage(), 500);
+	}
 }
 
-function sendResponse($invocationId, $response): void
+function request_generator()
 {
-    $url = sprintf('http://%s/2018-06-01/runtime/invocation/%s/response', $_ENV['AWS_LAMBDA_RUNTIME_API'], $invocationId);
+	while (true) {
+		yield get_next_request();
+	}
+}
 
-    $curl = curl_init();
-    try {
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_POST => true,
-            CURLOPT_HEADER => [
-                'Content-Type: application/json; utf-8',
-                'Accept: application/json'
-            ],
-            CURLOPT_POSTFIELDS => json_encode(['body' => $response]),
-        ]);
+function get_next_request(): array
+{
+	$url = sprintf('http://%s/2018-06-01/runtime/invocation/next', getenv('AWS_LAMBDA_RUNTIME_API'));
+	$headers = [];
+	$body = '';
 
-        curl_exec($curl);
-    } finally {
-        curl_close($curl);
-    }
+	$curl = curl_init();
+	try {
+		curl_setopt_array($curl, [
+			CURLOPT_URL => $url,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_FAILONERROR => TRUE,
+			CURLOPT_HEADERFUNCTION => function ($curl, $header) use (&$headers) {
+				$length = strlen($header);
+				$header = explode($delimiter = ':', $header, $limit = 2);
+				if (count($header) < 2) // ignore invalid headers
+					return $length;
+
+				[$key, $value] = array_map('trim', $header);
+
+				$headers[$key][] = $value;
+
+				return $length;
+			},
+			CURLOPT_WRITEFUNCTION => function ($curl, $chunk) use (&$body) {
+				$body .= $chunk;
+
+				return strlen($chunk);
+			}
+		]);
+
+		curl_exec($curl);
+
+		$error = curl_error($curl);
+		if ($error) {
+			throw new \RuntimeException($error);
+		}
+
+		$requestId = $headers['Lambda-Runtime-Aws-Request-Id'] ?? [];
+		if (empty($requestId)) {
+			throw new \RuntimeException("Lambda-Runtime-Aws-Request-Id is missing");
+		}
+
+		return [
+			'invocationId' => $headers['Lambda-Runtime-Aws-Request-Id'][0],
+			'payload' => json_decode($body, $associative = true)
+		];
+	} finally {
+		curl_close($curl);
+	}
+}
+
+function send_response(string $invocationId, $response, int $status = 200): void
+{
+	$url = sprintf('http://%s/2018-06-01/runtime/invocation/%s/response', getenv('AWS_LAMBDA_RUNTIME_API'), $invocationId);
+	post_json($url, [
+		'statusCode' => $status,
+		'body' => $response
+	]);
+}
+
+function post_json(string $url, array $fields): void
+{
+	$json = json_encode($fields);
+	$length = strlen($json);
+
+	$curl = curl_init($url);
+	try {
+		curl_setopt(CURLOPT_HEADER, [
+			'Accept: application/json',
+			'Content-Type: application/json; utf-8',
+			"Content-Length: $length",
+		]);
+
+		curl_setopt(CURLOPT_POST, true);
+		curl_setopt(CURLOPT_POSTFIELDS, $json);
+
+		curl_exec($curl);
+	} finally {
+		curl_close($curl);
+	}
 }
