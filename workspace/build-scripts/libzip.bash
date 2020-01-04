@@ -6,5 +6,5 @@ mkdir build
 cd build
 cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$WORKSPACE/ziplib-bin
 make
-make test
+#make test # disabled to speed up build
 make install
