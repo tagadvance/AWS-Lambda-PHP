@@ -10,14 +10,9 @@ define('PIPE_IN', 0);
 define('PIPE_OUT', 1);
 define('PIPE_ERR', 2);
 
-$verbose = getenv('verbose');
-define('VERBOSE', $verbose);
-
 foreach (request_generator() as $request) {
 	$taskRoot = getenv('LAMBDA_TASK_ROOT');
-	debug("LAMBDA_TASK_ROOT\t$taskRoot");
 	$handler = getenv('_HANDLER');
-	debug("_HANDLER\t$handler");
 	$handler = sprintf('%s/%s', $taskRoot, $handler);
 
 	try {
@@ -96,8 +91,6 @@ function get_next_request(): array
  */
 function run(string $command, array $payload)
 {
-	debug("\$command\t$command");
-
 	$descriptor = [
 		PIPE_IN => ['pipe', 'r'],
 		PIPE_OUT => ['pipe', 'w'],
@@ -130,10 +123,8 @@ function run(string $command, array $payload)
 	}
 
 	if (isset($output)) {
-		debug("\$output\t$output");
 		$lines = explode(PHP_EOL, $output);
 		$result = array_shift($lines);
-		debug("\$result\t$result");
 
 		foreach ($lines as $line) {
 			print $line . PHP_EOL;
@@ -174,12 +165,5 @@ function post_json(string $url, array $fields): void
 		curl_exec($curl);
 	} finally {
 		curl_close($curl);
-	}
-}
-
-function debug(string $message): void
-{
-	if (VERBOSE) {
-		print $message . PHP_EOL;
 	}
 }
