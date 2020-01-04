@@ -1,15 +1,28 @@
 #!/opt/bin/php -c/opt/bin/php.ini
 <?php
 
+/**
+ * This bootstrap runs the handler in a separate process. The payload is encoded to JSON and written to STDIN. The last line of the output is used as the result.
+ * Example Handler: src/hello.php
+ */
+
+define('PIPE_IN', 0);
+define('PIPE_OUT', 1);
+define('PIPE_ERR', 2);
+
+$verbose = getenv('verbose');
+define('VERBOSE', $verbose);
+
 foreach (request_generator() as $request) {
-	$tokens = explode($delimiter = '.', getenv('_HANDLER'));
-	$handlerFunction = array_slice($tokens, $offset = -1)[0];
-	$handler = sprintf('%s/src/%s.php', getenv('LAMBDA_TASK_ROOT'), $handlerFunction);
+	$taskRoot = getenv('LAMBDA_TASK_ROOT');
+	debug("LAMBDA_TASK_ROOT\t$taskRoot");
+	$handler = getenv('_HANDLER');
+	debug("_HANDLER\t$handler");
+	$handler = sprintf('%s/%s', $taskRoot, $handler);
 
 	try {
-		// TODO: refactor to run in another process
-		$data = $request['payload'];
-		$response = require $handler;
+		$command = sprintf('/opt/bin/php -c/opt/bin/php.ini %s', $handler);
+		$response = run($command, $request['payload']);
 
 		send_response($request['invocationId'], $response);
 	} catch (\Throwable $t) {
@@ -76,6 +89,62 @@ function get_next_request(): array
 	}
 }
 
+/**
+ * @param string $command
+ * @param array $payload
+ * @return array|string|null
+ */
+function run(string $command, array $payload)
+{
+	debug("\$command\t$command");
+
+	$descriptor = [
+		PIPE_IN => ['pipe', 'r'],
+		PIPE_OUT => ['pipe', 'w'],
+		PIPE_ERR => STDERR
+	];
+	$pipes = [];
+
+	$exitCode = -1;
+	try {
+		$process = proc_open($command, $descriptor, $pipes);
+		if (is_resource($process)) {
+			fwrite($pipes[PIPE_IN], json_encode($payload));
+			fclose($pipes[PIPE_IN]);
+
+			$output = stream_get_contents($pipes[PIPE_OUT]);
+			fclose($pipes[PIPE_OUT]);
+
+			if (isset($pipes[PIPE_ERR]) && is_resource($pipes[PIPE_ERR])) {
+				fclose($pipes[PIPE_ERR]);
+			}
+		}
+	} finally {
+		if (is_resource($process)) {
+			$exitCode = proc_close($process);
+		}
+	}
+
+	if ($exitCode !== 0) {
+		throw new \RuntimeException($command, $exitCode);
+	}
+
+	if (isset($output)) {
+		debug("\$output\t$output");
+		$lines = explode(PHP_EOL, $output);
+		$result = array_shift($lines);
+		debug("\$result\t$result");
+
+		foreach ($lines as $line) {
+			print $line . PHP_EOL;
+		}
+
+		return json_decode($result) ?? $result;
+	}
+
+	return null;
+}
+
 function send_response(string $invocationId, $response, int $status = 200): void
 {
 	$url = sprintf('http://%s/2018-06-01/runtime/invocation/%s/response', getenv('AWS_LAMBDA_RUNTIME_API'), $invocationId);
@@ -92,17 +161,25 @@ function post_json(string $url, array $fields): void
 
 	$curl = curl_init($url);
 	try {
-		curl_setopt(CURLOPT_HEADER, [
+		curl_setopt($curl, CURLOPT_HEADER, [
 			'Accept: application/json',
-			'Content-Type: application/json; utf-8',
+			'Accept-Charset: utf-8',
+			'Content-Type: application/json; charset=utf-8',
 			"Content-Length: $length",
 		]);
 
-		curl_setopt(CURLOPT_POST, true);
-		curl_setopt(CURLOPT_POSTFIELDS, $json);
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $json);
 
 		curl_exec($curl);
 	} finally {
 		curl_close($curl);
+	}
+}
+
+function debug(string $message): void
+{
+	if (VERBOSE) {
+		print $message . PHP_EOL;
 	}
 }

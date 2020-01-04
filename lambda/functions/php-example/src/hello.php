@@ -1,3 +1,6 @@
 <?php
 
-return "Hello, {$request['payload']['name']}!";
+$contents = stream_get_contents(STDIN);
+$payload = json_decode($contents, true);
+
+print "Hello, {$payload['name']}!";
